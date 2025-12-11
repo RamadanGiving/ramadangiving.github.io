@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ramadan Giving Organization</title>
+    <meta name="description"
+        content="A grassroots initiative building connection and serving vulnerable families in Cairo and the GTA.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+    
+    <!-- Cursor Glow Effect -->
+    <div class="cursor-glow"></div>
+    
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <img src="assets/images/logo.jpg" alt="Ramadan Giving" class="logo-img">
+                <span class="logo-text">Ramadan Giving</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#impact">Impact</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#get-involved">Get Involved</a></li>
+                <li><a href="#locations">Locations</a></li>
+                <li><a href="https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope" target="_blank" class="btn-primary">Donate</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <span class="hero-badge">Since 2021</span>
+            <h1 class="hero-title">United by Compassion,<br><span class="highlight">Driven by Service</span></h1>
+            <p class="hero-subtitle">Building connection and serving vulnerable families in Cairo and the GTA.</p>
+            <div class="hero-buttons">
+                <a href="#about" class="btn-primary">
+                    <span>Our Story</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="#impact" class="btn-secondary">See Our Impact</a>
+            </div>
+            <div class="hero-stats-bar">
+                <div class="hero-stat">
+                    <span class="hero-stat-number" data-count="300">$300K+</span>
+                    <span class="hero-stat-label">Raised</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">1000s</span>
+                    <span class="hero-stat-label">Items Given</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">2</span>
+                    <span class="hero-stat-label">Continents</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </header>
+
+    <section id="about" class="section about-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our Mission</span>
+                <h2 class="section-title">Who We Are</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p class="lead-text">Founded in 2021 during the COVID-19 pandemic, Ramadan Giving began as a grassroots initiative to
+                        build connection and serve during a time of isolation.</p>
+                    <p>What started by delivering non-perishable food packages to vulnerable families in Cairo and the GTA has blossomed into a year-round community movement.</p>
+                    <ul class="about-list">
+                        <li>
+                            <div class="icon-box">
+                            <span class="icon">🌍</span>
+                            </div>
+                            <div>
+                                <strong>Global Reach</strong>
+                                <p>Supporting individuals locally in the GTA and internationally in Cairo.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon-box">
+                            <span class="icon">🤝</span>
+                            </div>
+                            <div>
+                                <strong>Community Powered</strong>
+                                <p>Powered by hundreds of volunteers united by compassion and service.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon-box">
+                            <span class="icon">❤️</span>
+                            </div>
+                            <div>
+                                <strong>Inclusive Service</strong>
+                                <p>Serving all people, regardless of faith, background, or identity.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">💰</div>
+                        <h3 class="stat-number">$300K+</h3>
+                        <p class="stat-label">Raised for Relief</p>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">📦</div>
+                        <h3 class="stat-number">1000s</h3>
+                        <p class="stat-label">Items Distributed</p>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon">🎯</div>
+                        <h3 class="stat-number">2021</h3>
+                        <p class="stat-label">Established</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="section team-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our People</span>
+                <h2 class="section-title">Our Team</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Powered by hundreds of volunteers, united by compassion.</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <img src="assets/images/packing.png" alt="Community Leaders">
+                        <div class="avatar-ring"></div>
+                    </div>
+                    <h3>Community Leaders</h3>
+                    <p>Our dedicated organizers who make everything possible.</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <img src="assets/images/day-camp.png" alt="Volunteers">
+                        <div class="avatar-ring"></div>
+                    </div>
+                    <h3>Volunteers</h3>
+                    <p>The heart and soul of our distribution efforts.</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <img src="assets/images/gala.png" alt="Youth Ambassadors">
+                        <div class="avatar-ring"></div>
+                    </div>
+                    <h3>Youth Ambassadors</h3>
+                    <p>Inspiring the next generation of changemakers.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="impact" class="section impact-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our Journey</span>
+                <h2 class="section-title">Our Impact</h2>
+                <div class="section-line"></div>
+                <p class="section-description">From humble beginnings to a year-round movement.</p>
+            </div>
+
+            <div class="timeline-v2">
+                <div class="timeline-center-line"></div>
+                
+                <!-- 2025 - Left (TOP) -->
+                <div class="timeline-row left">
+                    <div class="timeline-card glass-card">
+                        <h3>Continuing the Mission</h3>
+                        <p>Expanding our reach across Toronto and Cairo, serving more families with food packages and essential support.</p>
+                    </div>
+                    <div class="timeline-dot active">
+                        <span>2025</span>
+                    </div>
+                    <div class="timeline-image">
+                        <img src="assets/years/2025.jpg" alt="Ramadan Giving 2025" loading="lazy">
+                    </div>
+                </div>
+                
+                <!-- 2024 - Right -->
+                <div class="timeline-row right">
+                    <div class="timeline-image">
+                        <img src="assets/years/2024.jpg" alt="Ramadan Giving 2024" loading="lazy">
+                    </div>
+                    <div class="timeline-dot">
+                        <span>2024</span>
+                    </div>
+                    <div class="timeline-card glass-card">
+                        <h3>Year-Round Impact</h3>
+                        <p>Raised over $300K through community-led gala events to support humanitarian relief.</p>
+                    </div>
+                </div>
+                
+                <!-- 2023 - Left -->
+                <div class="timeline-row left">
+                    <div class="timeline-card glass-card">
+                        <h3>Community Programs</h3>
+                        <p>Organized day camps and programs for refugee and vulnerable children.</p>
+                    </div>
+                    <div class="timeline-dot">
+                        <span>2023</span>
+                    </div>
+                    <div class="timeline-image">
+                        <img src="assets/years/2023.jpg" alt="Ramadan Giving 2023" loading="lazy">
+                    </div>
+                </div>
+                
+                <!-- 2022 - Right -->
+                <div class="timeline-row right">
+                    <div class="timeline-image">
+                        <img src="assets/years/2022.jpg" alt="Ramadan Giving 2022" loading="lazy">
+                    </div>
+                    <div class="timeline-dot">
+                        <span>2022</span>
+                    </div>
+                    <div class="timeline-card glass-card">
+                        <h3>Growing the Movement</h3>
+                        <p>Expanded to distribute lunch bags, winter kits, and essential items to unhoused communities.</p>
+                    </div>
+                </div>
+                
+                <!-- 2021 - Left (BOTTOM) -->
+                <div class="timeline-row left">
+                    <div class="timeline-card glass-card">
+                        <h3>The Beginning</h3>
+                        <p>Started with non-perishable food packages to vulnerable families in Cairo and the GTA during the pandemic.</p>
+                    </div>
+                    <div class="timeline-dot">
+                        <span>2021</span>
+                    </div>
+                    <div class="timeline-image">
+                        <img src="assets/years/2021.jpg" alt="Ramadan Giving 2021" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="section gallery-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our Story in Photos</span>
+                <h2 class="section-title">Moments of Joy</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="slideshow-container">
+                <div class="slideshow-wrapper" id="slideshow-wrapper">
+                    <!-- Images will be injected here by JS -->
+                </div>
+                <button class="slide-btn prev" id="prevBtn" aria-label="Previous slide">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <button class="slide-btn next" id="nextBtn" aria-label="Next slide">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+                
+                <!-- Modern Slideshow Controls -->
+                <div class="slideshow-controls">
+                    <div class="slide-counter">
+                        <span class="current" id="slideCurrentNum">1</span>
+                        <span class="separator"> / </span>
+                        <span class="total" id="slideTotalNum">0</span>
+                    </div>
+                    
+                    <div class="slide-progress-container">
+                        <div class="slide-progress" id="slideProgress">
+                            <div class="slide-progress-bar" id="slideProgressBar"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="slide-play-pause" id="slidePlayPause" aria-label="Pause slideshow">
+                        <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16" rx="1"/>
+                            <rect x="14" y="4" width="4" height="16" rx="1"/>
+                        </svg>
+                        <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="get-involved" class="section get-involved-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Take Action</span>
+                <h2 class="section-title">Join the Movement</h2>
+                <div class="section-line"></div>
+                <p class="section-description">There are many ways to make a difference.</p>
+            </div>
+            <div class="involvement-grid">
+                <div class="involvement-card glass-card">
+                    <div class="card-glow"></div>
+                    <div class="icon-wrapper">
+                        <span>🤝</span>
+                    </div>
+                    <h3>Volunteer</h3>
+                    <p>Join our community of hundreds of volunteers. Whether it's packing boxes, distributing food, or
+                        organizing events, your time is valuable.</p>
+                    <a href="#" class="btn-text">
+                        <span>Sign Up to Volunteer</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="involvement-card glass-card">
+                    <div class="card-glow"></div>
+                    <div class="icon-wrapper">
+                        <span>📢</span>
+                    </div>
+                    <h3>Partner With Us</h3>
+                    <p>Collaborate with us to amplify our impact. We welcome partnerships with businesses, community
+                        groups, and other organizations.</p>
+                    <a href="#" class="btn-text">
+                        <span>Become a Partner</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="involvement-card glass-card">
+                    <div class="card-glow"></div>
+                    <div class="icon-wrapper">
+                        <span>🎁</span>
+                    </div>
+                    <h3>Sponsor an Event</h3>
+                    <p>Help us host our community galas and fundraising events. Your sponsorship directly supports our
+                        humanitarian relief efforts.</p>
+                    <a href="#" class="btn-text">
+                        <span>Sponsor Opportunities</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="donate" class="section donate-section">
+        <div class="donate-bg-pattern"></div>
+        <div class="container donate-container">
+            <div class="donate-content">
+                <span class="donate-badge">Make an Impact</span>
+                <h2>Support Our Mission</h2>
+                <p>Your generous donation helps us provide essential food, winter kits, and programs for vulnerable
+                    families in Cairo and the GTA.</p>
+                
+                <!-- LaunchGood Embed -->
+                <div class="launchgood-embed">
+                    <iframe 
+                        src="https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope?embed=true" 
+                        width="100%" 
+                        height="450" 
+                        frameborder="0" 
+                        scrolling="yes"
+                        title="Donate via LaunchGood"
+                        allow="payment">
+                    </iframe>
+                </div>
+                
+                <p class="donate-alt-text">Or donate directly on LaunchGood:</p>
+                <a href="https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope" target="_blank" class="btn-primary donate-cta">
+                    <span>Open LaunchGood Campaign</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="locations" class="section locations-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Global Presence</span>
+                <h2 class="section-title">Where We Serve</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Bridging communities across continents — Toronto 🇨🇦 & Cairo 🇪🇬</p>
+            </div>
+            <div id="worldmap" class="locations-map"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-pattern"></div>
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <img src="assets/images/logo.jpg" alt="Ramadan Giving" class="footer-logo">
+                <p>For the community, by the community.</p>
+                <div class="footer-social">
+                    <a href="https://www.instagram.com/ramadan.giving/" target="_blank" class="social-link" aria-label="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Email">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <a href="#about">About Us</a>
+                <a href="#impact">Our Impact</a>
+                <a href="#get-involved">Get Involved</a>
+                <a href="https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope" target="_blank">Donate</a>
+            </div>
+            <div class="footer-newsletter">
+                <h4>Stay Updated</h4>
+                <p>Subscribe to our newsletter for updates on our work.</p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Your email" aria-label="Email address">
+                    <button type="submit" aria-label="Subscribe">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Ramadan Giving Organization. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
+
+
