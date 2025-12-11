@@ -275,7 +275,7 @@ function initWorldMap() {
                 homeZoomLevel: 1.2
             })
         );
-        
+
         // Add zoom control
         const zoomControl = chart.set("zoomControl", am5map.ZoomControl.new(root, {
             x: am5.p100,
@@ -296,7 +296,7 @@ function initWorldMap() {
         });
         backgroundSeries.data.push({
             geometry: am5map.getGeoRectangle(90, 180, -90, -180)
-        });
+    });
 
         // Add countries
         const polygonSeries = chart.series.push(
@@ -565,7 +565,7 @@ function setupSlideshow(images, wrapper, prevBtn, nextBtn, currentNumEl, totalNu
             } else if (e.key === ' ') {
                 e.preventDefault();
                 togglePlayPause();
-            }
+                }
         }
     });
 
