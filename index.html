@@ -84,7 +84,7 @@
                     <div class="dropdown-menu dropdown-menu-wide">
                         <div class="dropdown-section">
                             <span class="dropdown-label">Resources</span>
-                            <a href="blog.html">Blog & News</a>
+                            <a href="blog/">Blog & News</a>
                             <a href="#gallery">Photo Gallery</a>
                             <a href="#locations">Our Locations</a>
                         </div>
@@ -261,87 +261,32 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">Stay Updated</span>
-                <h2 class="section-title">The Latest News</h2>
+                <h2 class="section-title">The latest news</h2>
                 <div class="section-line"></div>
             </div>
-            <div class="news-grid">
-                <article class="news-card" data-category="announcement">
-                    <a href="blog.html?article=ramadan-2025" class="news-card-link">
-                        <div class="news-image">
-                            <img src="assets/years/2025.jpg" alt="Ramadan 2025 Campaign" loading="lazy">
-                            <span class="news-category">Announcement</span>
-                        </div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="news-author">Ramadan Giving Team</span>
-                                <span class="news-divider">—</span>
-                                <time class="news-date">Dec 15, 2025</time>
-                            </div>
-                            <h3 class="news-title">Ramadan Giving 2025: Record-Breaking Year of Impact</h3>
-                            <p class="news-excerpt">1,965 lunch bags, 530 winter kits, and over $108K raised for Gaza relief. See how our community came together.</p>
-                            <span class="news-read-more">
-                                Read more
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                                </svg>
-                            </span>
-                        </div>
-                    </a>
-                </article>
-                <article class="news-card" data-category="community">
-                    <a href="blog.html?article=gaza-relief" class="news-card-link">
-                        <div class="news-image">
-                            <img src="assets/years/2024.jpg" alt="Gaza Relief Initiative" loading="lazy">
-                            <span class="news-category">Relief Effort</span>
-                        </div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="news-author">Ramadan Giving Team</span>
-                                <span class="news-divider">—</span>
-                                <time class="news-date">Nov 28, 2025</time>
-                            </div>
-                            <h3 class="news-title">$197K+ Raised at Gala for Gaza Relief Efforts</h3>
-                            <p class="news-excerpt">Our community united to support families affected by the humanitarian crisis in Gaza.</p>
-                            <span class="news-read-more">
-                                Read more
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                                </svg>
-                            </span>
-                        </div>
-                    </a>
-                </article>
-                <article class="news-card" data-category="program">
-                    <a href="blog.html?article=children-camp" class="news-card-link">
-                        <div class="news-image">
-                            <img src="assets/years/2025-cairo.jpg" alt="Children's Camp Day" loading="lazy">
-                            <span class="news-category">Programs</span>
-                        </div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="news-author">Ramadan Giving Team</span>
-                                <span class="news-divider">—</span>
-                                <time class="news-date">Oct 12, 2025</time>
-                            </div>
-                            <h3 class="news-title">Camp Day Joy: 174 Children Across Two Continents</h3>
-                            <p class="news-excerpt">111 children in GTA and 63 in Cairo including Gazan evacuees enjoyed a day of fun and celebration.</p>
-                            <span class="news-read-more">
-                                Read more
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                                </svg>
-                            </span>
-                        </div>
-                    </a>
-                </article>
+            
+            <!-- News Carousel -->
+            <div class="news-carousel">
+                <div class="news-carousel-track" id="newsCarouselTrack">
+                    <!-- News cards will be loaded dynamically from blog/posts.json -->
+                </div>
             </div>
-            <div class="news-pagination">
-                <a href="blog.html" class="btn-secondary news-view-all">
-                    <span>View All News</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+            
+            <!-- Pagination Controls -->
+            <div class="news-carousel-pagination">
+                <button class="news-nav-btn news-prev" id="newsPrevBtn" aria-label="Previous news">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"/>
                     </svg>
-                </a>
+                </button>
+                <div class="news-page-numbers" id="newsPageNumbers">
+                    <!-- Page numbers generated dynamically -->
+                </div>
+                <button class="news-nav-btn news-next" id="newsNextBtn" aria-label="Next news">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </section>
