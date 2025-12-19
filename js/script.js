@@ -8,6 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize all components
     initNavigation();
+    initDropdownNavigation();
     initParticles();
     initScrollAnimations();
     initDonationButtons();
@@ -66,6 +67,64 @@ function initNavigation() {
         }
 
         lastScroll = currentScroll;
+    });
+}
+
+/**
+ * Dropdown Navigation (Cohere-style)
+ */
+function initDropdownNavigation() {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+    if (!dropdowns.length) return;
+
+    dropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.dropdown-trigger');
+        const menu = dropdown.querySelector('.dropdown-menu');
+
+        if (!trigger || !menu) return;
+
+        // Desktop: hover behavior
+        dropdown.addEventListener('mouseenter', () => {
+            if (window.innerWidth > 768) {
+                menu.classList.add('show');
+                trigger.classList.add('active');
+            }
+        });
+
+        dropdown.addEventListener('mouseleave', () => {
+            if (window.innerWidth > 768) {
+                menu.classList.remove('show');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Mobile: click behavior
+        trigger.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                menu.classList.toggle('show');
+                trigger.classList.toggle('active');
+
+                // Close other dropdowns
+                dropdowns.forEach(other => {
+                    if (other !== dropdown) {
+                        other.querySelector('.dropdown-menu')?.classList.remove('show');
+                        other.querySelector('.dropdown-trigger')?.classList.remove('active');
+                    }
+                });
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-dropdown')) {
+            dropdowns.forEach(dropdown => {
+                dropdown.querySelector('.dropdown-menu')?.classList.remove('show');
+                dropdown.querySelector('.dropdown-trigger')?.classList.remove('active');
+            });
+        }
     });
 }
 
