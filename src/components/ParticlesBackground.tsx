@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -8,12 +8,51 @@ declare global {
   }
 }
 
+/**
+ * Optimized Particles Background
+ * - Lazy loads the particles.js library
+ * - Reduces particle count on mobile for better performance
+ * - Only initializes when visible (intersection observer)
+ */
 export default function ParticlesBackground() {
   const initialized = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Check if user prefers reduced motion
+  const prefersReducedMotion = 
+    typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
-    if (initialized.current) return;
+    // Skip particles if user prefers reduced motion
+    if (prefersReducedMotion) return;
+
+    // Use Intersection Observer to lazy load
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!isVisible || initialized.current || prefersReducedMotion) return;
     
+    // Detect mobile for reduced particles
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 25 : 50;
+
     // Load particles.js script
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js';
@@ -23,7 +62,7 @@ export default function ParticlesBackground() {
         window.particlesJS('particles-js', {
           particles: {
             number: {
-              value: 50,
+              value: particleCount,
               density: {
                 enable: true,
                 value_area: 1000
@@ -43,7 +82,7 @@ export default function ParticlesBackground() {
               value: 0.4,
               random: true,
               anim: {
-                enable: true,
+                enable: !isMobile, // Disable animations on mobile
                 speed: 0.5,
                 opacity_min: 0.1,
                 sync: false
@@ -53,7 +92,7 @@ export default function ParticlesBackground() {
               value: 4,
               random: true,
               anim: {
-                enable: true,
+                enable: !isMobile, // Disable animations on mobile
                 speed: 2,
                 size_min: 0.5,
                 sync: false
@@ -61,21 +100,21 @@ export default function ParticlesBackground() {
             },
             line_linked: {
               enable: true,
-              distance: 150,
+              distance: isMobile ? 100 : 150,
               color: '#2D6E7A',
               opacity: 0.15,
               width: 1
             },
             move: {
               enable: true,
-              speed: 1.5,
+              speed: isMobile ? 0.8 : 1.5,
               direction: 'none',
               random: true,
               straight: false,
               out_mode: 'out',
               bounce: false,
               attract: {
-                enable: true,
+                enable: !isMobile, // Disable on mobile
                 rotateX: 600,
                 rotateY: 1200
               }
@@ -85,11 +124,11 @@ export default function ParticlesBackground() {
             detect_on: 'canvas',
             events: {
               onhover: {
-                enable: true,
+                enable: !isMobile, // Disable hover on mobile
                 mode: 'grab'
               },
               onclick: {
-                enable: true,
+                enable: !isMobile, // Disable click on mobile
                 mode: 'push'
               },
               resize: true
@@ -116,8 +155,12 @@ export default function ParticlesBackground() {
     return () => {
       // Cleanup not needed as particles container stays
     };
-  }, []);
+  }, [isVisible, prefersReducedMotion]);
 
-  return <div id="particles-js" />;
+  // Don't render anything if user prefers reduced motion
+  if (prefersReducedMotion) {
+    return null;
+  }
+
+  return <div ref={containerRef} id="particles-js" aria-hidden="true" />;
 }
-
