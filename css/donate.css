@@ -877,6 +877,60 @@
     animation: slideDown 0.3s ease;
 }
 
+/* Stripe Card Element */
+.stripe-card-element {
+    padding: var(--space-4);
+    background: var(--white);
+    border: 2px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    transition: var(--transition-base);
+}
+
+.stripe-card-element.focused,
+.stripe-card-element:focus-within {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(45, 110, 122, 0.1);
+}
+
+.stripe-card-errors {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: var(--space-2);
+    min-height: 1.2rem;
+}
+
+/* Payment Request Button (Apple Pay / Google Pay) */
+.stripe-payment-request-btn {
+    margin-bottom: var(--space-4);
+}
+
+#payment-request-button {
+    height: 48px;
+}
+
+.payment-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-4) 0;
+}
+
+.payment-divider::before,
+.payment-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--neutral-200);
+}
+
+.payment-divider span {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
 /* Bank Details */
 .bank-details {
     animation: slideDown 0.3s ease;
