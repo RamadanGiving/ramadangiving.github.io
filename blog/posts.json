@@ -1,6 +1,19 @@
 {
   "posts": [
     {
+      "id": "volunteer-journey-amr",
+      "slug": "volunteer-journey-amr",
+      "title": "Amr's Volunteer Journey",
+      "excerpt": "Amr volunteered with Ramadan Giving for the first time this year and super excited!!",
+      "content": "volunteer-journey-amr.html",
+      "image": "../assets/years/2025.jpg",
+      "category": "volunteer",
+      "categoryLabel": "Volunteer Story",
+      "author": "Amr",
+      "date": "2025-12-24",
+      "featured": false
+    },
+    {
       "id": "ramadan-2025-record-year",
       "slug": "ramadan-2025-record-year",
       "title": "Ramadan Giving 2025: A Record-Breaking Year of Community Impact",
