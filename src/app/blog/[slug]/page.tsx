@@ -106,9 +106,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             ) : (
               // Fallback for posts without markdown content
               <div className="post-body">
-                <p className="post-excerpt">{post.excerpt}</p>
+            <p className="post-excerpt">{post.excerpt}</p>
                 <p>Full content coming soon. Check back for the complete article!</p>
-              </div>
+            </div>
             )}
 
             {/* Share Buttons */}

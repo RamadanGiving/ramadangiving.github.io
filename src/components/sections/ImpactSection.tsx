@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import Image from 'next/image';
 
 interface TimelineYear {
@@ -12,7 +12,7 @@ interface TimelineYear {
   isActive?: boolean;
 }
 
-export default function ImpactSection() {
+function ImpactSection() {
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const timeline: TimelineYear[] = [
@@ -135,4 +135,6 @@ export default function ImpactSection() {
     </section>
   );
 }
+
+export default memo(ImpactSection);
 

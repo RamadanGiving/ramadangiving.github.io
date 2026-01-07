@@ -1,5 +1,6 @@
-# Comprehensive workflow for building, optimizing, and deploying to GitHub Pages
-name: Build & Deploy to GitHub Pages
+# Comprehensive CI/CD workflow for Next.js static site
+# Consolidates: build, deploy, quality checks, Lighthouse, and image optimization
+name: Build, Test & Deploy
 
 on:
   push:
@@ -8,13 +9,12 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN
 permissions:
   contents: read
   pages: write
   id-token: write
+  pull-requests: write
 
-# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -24,9 +24,36 @@ env:
 
 jobs:
   # ===========================================
-  # Build & Test Job
+  # Code Quality & Type Checking
+  # ===========================================
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Lint code
+        run: npm run lint
+
+      - name: 🔍 Type check
+        run: npx tsc --noEmit
+
+  # ===========================================
+  # Build & Optimize
   # ===========================================
   build:
+    name: Build & Optimize
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
@@ -59,26 +86,31 @@ jobs:
         run: npm run posts
 
       - name: 🖼️ Analyze images
-        run: node scripts/optimize-images.js
-        continue-on-error: true
-
-      - name: 🔍 Run linter
-        run: npm run lint
-        continue-on-error: true
+        run: |
+          echo "## 🖼️ Image Analysis" >> $GITHUB_STEP_SUMMARY
+          node scripts/optimize-images.js >> $GITHUB_STEP_SUMMARY || true
 
       - name: 🏗️ Build Next.js application
         run: npm run build
         env:
           NODE_ENV: production
 
-      - name: 📊 Display build info
+      - name: 📊 Build summary
         run: |
-          echo "📦 Build completed!"
-          echo "📁 Output directory contents:"
-          ls -la out/
-          echo ""
-          echo "📄 Generated pages:"
-          find out -name "*.html" | head -20
+          echo "## 📦 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          
+          TOTAL_SIZE=$(du -sh out 2>/dev/null | cut -f1 || echo "N/A")
+          HTML_COUNT=$(find out -name "*.html" 2>/dev/null | wc -l || echo "0")
+          JS_SIZE=$(find out -name "*.js" -exec du -ch {} + 2>/dev/null | tail -1 | cut -f1 || echo "0")
+          CSS_SIZE=$(find out -name "*.css" -exec du -ch {} + 2>/dev/null | tail -1 | cut -f1 || echo "0")
+          
+          echo "| Total Size | $TOTAL_SIZE |" >> $GITHUB_STEP_SUMMARY
+          echo "| HTML Pages | $HTML_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| JavaScript | $JS_SIZE |" >> $GITHUB_STEP_SUMMARY
+          echo "| CSS | $CSS_SIZE |" >> $GITHUB_STEP_SUMMARY
 
       - name: 📤 Upload build artifact
         uses: actions/upload-pages-artifact@v3
@@ -89,9 +121,10 @@ jobs:
   # Lighthouse Performance Audit
   # ===========================================
   lighthouse:
+    name: Lighthouse Audit
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -105,9 +138,13 @@ jobs:
       - name: 📦 Extract artifact
         run: |
           mkdir -p out
-          tar -xvf out-artifact/artifact.tar -C out
+          if [ -f out-artifact/artifact.tar ]; then
+            tar -xvf out-artifact/artifact.tar -C out
+          else
+            cp -r out-artifact/* out/ 2>/dev/null || true
+          fi
 
-      - name: 🚀 Run Lighthouse CI
+      - name: 🔦 Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11
         with:
           configPath: './.lighthouserc.json'
@@ -115,10 +152,107 @@ jobs:
           temporaryPublicStorage: true
         continue-on-error: true
 
+      - name: 📊 Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: '.lighthouseci'
+          retention-days: 30
+
   # ===========================================
-  # Deploy Job (only on main branch)
+  # Image Optimization (PRs only)
+  # ===========================================
+  optimize-images:
+    name: Optimize Images
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.changed_files, 'public/assets')
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🖼️ Analyze images
+        run: |
+          echo "## 🖼️ Image Analysis" >> $GITHUB_STEP_SUMMARY
+          node scripts/optimize-images.js >> $GITHUB_STEP_SUMMARY || true
+
+      - name: 🔧 Optimize images (if Sharp available)
+        run: |
+          if npm list sharp >/dev/null 2>&1; then
+            node scripts/optimize-images-auto.js || true
+          else
+            echo "⚠️ Sharp not installed. Skipping auto-optimization."
+          fi
+        continue-on-error: true
+
+      - name: 📤 Commit optimized images
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🖼️ Auto-optimize images'
+          file_pattern: 'public/assets/**/*'
+        continue-on-error: true
+
+  # ===========================================
+  # Content Validation
+  # ===========================================
+  content-check:
+    name: Content Validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 📝 Validate blog posts
+        run: |
+          echo "## 📝 Blog Posts" >> $GITHUB_STEP_SUMMARY
+          npm run posts
+          
+          POST_COUNT=$(find content/posts -name "*.md" ! -name "_*" 2>/dev/null | wc -l || echo "0")
+          echo "Total posts: $POST_COUNT" >> $GITHUB_STEP_SUMMARY
+
+      - name: 🖼️ Check for large images
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🖼️ Large Images (>500KB)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          find public/assets -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) -size +500k 2>/dev/null | \
+          while read -r img; do
+            size=$(du -h "$img" | cut -f1)
+            echo "- \`$img\` ($size)" >> $GITHUB_STEP_SUMMARY
+          done || echo "None found ✅" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================
+  # Deploy to GitHub Pages
   # ===========================================
   deploy:
+    name: Deploy to GitHub Pages
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -134,3 +268,34 @@ jobs:
         run: |
           echo "🎉 Successfully deployed to GitHub Pages!"
           echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+
+  # ===========================================
+  # Post-Deploy Lighthouse (Live Site)
+  # ===========================================
+  lighthouse-live:
+    name: Lighthouse (Live Site)
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    steps:
+      - name: ⏳ Wait for deployment
+        run: sleep 30
+
+      - name: 🔦 Run Lighthouse on live site
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            https://ramadangiving.github.io/
+            https://ramadangiving.github.io/donate/
+            https://ramadangiving.github.io/blog/
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        continue-on-error: true
+
+      - name: 📤 Upload reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-live-reports
+          path: '.lighthouseci'
+          retention-days: 30

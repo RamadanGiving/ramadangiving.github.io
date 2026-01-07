@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -14,8 +14,29 @@ declare global {
 export default function LocationsSection() {
   const mapRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<unknown>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Only initialize map when section is visible
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(mapRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!isVisible) return;
+
     const initMap = () => {
       if (!mapRef.current) return;
       
@@ -202,7 +223,7 @@ export default function LocationsSection() {
         (rootRef.current as { dispose: () => void }).dispose();
       }
     };
-  }, []);
+  }, [isVisible]);
 
   return (
     <section id="locations" className="section locations-section">
