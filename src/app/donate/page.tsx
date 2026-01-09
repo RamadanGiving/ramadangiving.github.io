@@ -1,799 +1,275 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import Script from 'next/script';
+import { useState } from "react";
+import { DollarSign, Heart, Repeat, Shield, Info, Gift, EyeOff, CreditCard, Wallet, Landmark, Banknote } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { GuestDonationModal } from "@/components/GuestDonationModal";
 
-// Types
-interface DonorInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
-
-interface DonationState {
-  amount: number;
-  frequency: string;
-  cause: string;
-  donorType: string;
-  paymentMethod: string;
-  dedication: string;
-  donorInfo: DonorInfo;
-}
-
-const causeNames: Record<string, string> = {
-  general: 'Where Needed Most',
-  food: 'Food Programs',
-  gaza: 'Gaza Relief',
-  orphans: 'Orphan Support',
-  winter: 'Winter Relief',
-  camp: "Children's Camp"
-};
-
-const impactMessages: Record<number, string> = {
-  25: '$25 provides hot meals for 5 people in need',
-  50: '$50 provides a complete winter kit for a family',
-  100: '$100 provides food packages for 2 families for a week',
-  250: '$250 sponsors a child at our summer camp program',
-  500: '$500 feeds 10 families during the entire month of Ramadan',
-  1000: '$1,000 provides emergency relief for displaced families'
-};
-
-const sampleDonors = [
-  { name: 'Sarah M.', amount: 100, time: '2 min ago', initial: 'S' },
-  { name: 'Anonymous', amount: 250, time: '5 min ago', initial: '?' },
-  { name: 'Ahmed K.', amount: 50, time: '8 min ago', initial: 'A' },
-  { name: 'Maria L.', amount: 500, time: '12 min ago', initial: 'M' },
-  { name: 'John D.', amount: 100, time: '15 min ago', initial: 'J' },
-  { name: 'Fatima R.', amount: 1000, time: '20 min ago', initial: 'F' },
-  { name: 'Anonymous', amount: 75, time: '25 min ago', initial: '?' },
-  { name: 'Omar S.', amount: 200, time: '30 min ago', initial: 'O' },
+const presetAmounts = [10, 25, 50, 100, 250, 500];
+const frequencies = [
+  { value: "one-time", label: "One-Time" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
+const allocations = [
+  { value: "general", label: "Where Most Needed (General Fund)" },
+  { value: "food", label: "Food Distribution" },
+  { value: "winter", label: "Winter Relief Kits" },
+  { value: "education", label: "Education Support" },
+  { value: "medical", label: "Medical Aid" },
+  { value: "zakat", label: "Zakat Fund" },
 ];
 
-export default function DonatePage() {
-  const [donationState, setDonationState] = useState<DonationState>({
-    amount: 100,
-    frequency: 'one-time',
-    cause: 'general',
-    donorType: 'details',
-    paymentMethod: 'card',
-    dedication: 'none',
-    donorInfo: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: ''
-    }
-  });
-
-  const [currentStep, setCurrentStep] = useState(1);
+export default function Donate() {
+  const { user } = useAuth();
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(50);
+  const [customAmount, setCustomAmount] = useState("");
+  const [frequency, setFrequency] = useState("one-time");
+  const [allocation, setAllocation] = useState("general");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const heroStatsRef = useRef<HTMLDivElement>(null);
+  const [showGuestModal, setShowGuestModal] = useState(false);
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return '$' + amount.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
+  const amount = customAmount ? Number(customAmount) : selectedAmount;
+  const isRecurring = frequency !== "one-time";
 
-  // Get impact message
-  const getImpactMessage = (amount: number) => {
-    const amounts = Object.keys(impactMessages).map(Number).sort((a, b) => a - b);
-    let message = impactMessages[100];
-    for (const amt of amounts) {
-      if (amount >= amt) {
-        message = impactMessages[amt];
-      }
+  const proceedToCheckout = async () => {
+    if (!amount || amount < 1) {
+      toast.error("Please enter a valid amount");
+      return;
     }
-    if (amount >= 2000) {
-      message = `$${amount.toLocaleString()} will make an extraordinary impact on countless lives`;
-    }
-    return message;
-  };
 
-  // Counter animation
-  const animateCounter = (element: HTMLElement, start: number, end: number, duration: number) => {
-    const range = end - start;
-    const startTime = performance.now();
-    
-    const update = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const current = Math.floor(start + (range * easeOutQuart));
-      element.textContent = current.toLocaleString();
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      }
-    };
-    requestAnimationFrame(update);
-  };
-
-  // Hero stats animation
-  useEffect(() => {
-    const stats = document.querySelectorAll('.hero-stat-number');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const target = entry.target as HTMLElement;
-          const endValue = parseInt(target.dataset.count || '0');
-          animateCounter(target, 0, endValue, 2000);
-          observer.unobserve(target);
-        }
-      });
-    }, { threshold: 0.5 });
-    stats.forEach(stat => observer.observe(stat));
-    return () => observer.disconnect();
-  }, []);
-
-  // Goal progress animation
-  useEffect(() => {
-    const progressBars = document.querySelectorAll('.goal-progress-fill');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const bar = entry.target as HTMLElement;
-          const progress = bar.dataset.progress;
-          setTimeout(() => {
-            bar.style.width = `${progress}%`;
-          }, 200);
-          observer.unobserve(bar);
-        }
-      });
-    }, { threshold: 0.3 });
-    progressBars.forEach(bar => observer.observe(bar));
-    return () => observer.disconnect();
-  }, []);
-
-  // Handle donation submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (donationState.donorType === 'details' && !donationState.donorInfo.email) {
-      alert('Please enter a valid email address for your receipt');
+    if (!supabase) {
+      toast.error("Payment service is not configured. Please contact support.");
       return;
     }
 
     setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          amount,
+          isMonthly: isRecurring,
+          frequency,
+          campaignTitle: allocations.find(a => a.value === allocation)?.label || "General Donation",
+          campaignId: allocation,
+          isAnonymous,
+        },
+      });
 
-    if (donationState.paymentMethod === 'bank') {
-      // Show bank transfer modal
-      alert('Bank transfer instructions will be shown');
+      if (error) {
+        throw new Error(error.message || "Failed to initiate payment");
+      }
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("No payment URL received");
+      }
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      toast.error(error.message || "Failed to start checkout. Please try again or contact support.");
+    } finally {
       setIsLoading(false);
-      return;
     }
+  };
 
-    // Redirect to LaunchGood for payment
-    window.open('https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope', '_blank');
-    setIsLoading(false);
+  const handleDonate = () => {
+    if (!user) {
+      setShowGuestModal(true);
+    } else {
+      proceedToCheckout();
+    }
   };
 
   return (
-    <>
-      <Script src="https://js.stripe.com/v3/" strategy="lazyOnload" />
-      
-      <main className="donate-main">
-        {/* Hero Section */}
-        <section className="donate-hero">
-          <div className="donate-hero-bg"></div>
-          <div className="container">
-            <div className="donate-hero-content">
-              <span className="donate-hero-badge">Make an Impact Today</span>
-              <h1 className="donate-hero-title">Your Generosity<br/><span className="highlight">Changes Lives</span></h1>
-              <p className="donate-hero-subtitle">Every donation helps us provide food, support, and hope to families in need across Toronto and Cairo. Join thousands of donors making a difference.</p>
-              
-              <div className="hero-stats" ref={heroStatsRef}>
-                <div className="hero-stat">
-                  <span className="hero-stat-number" data-count="15000">0</span>
-                  <span className="hero-stat-label">Families Served</span>
-                </div>
-                <div className="hero-stat">
-                  <span className="hero-stat-number" data-count="50000">0</span>
-                  <span className="hero-stat-label">Meals Provided</span>
-                </div>
-                <div className="hero-stat">
-                  <span className="hero-stat-number" data-count="952">0</span>
-                  <span className="hero-stat-label">Donors This Year</span>
-                </div>
-              </div>
-            </div>
+    <div className="space-y-8 max-w-lg mx-auto px-4">
+      <div className="text-center space-y-2 pt-6">
+        <h1 className="text-2xl font-bold text-foreground">Make a Donation</h1>
+        <p className="text-muted-foreground">Your generosity transforms lives. Every dollar counts.</p>
           </div>
-        </section>
 
-        {/* Live Donation Feed */}
-        <section className="live-feed-section">
-          <div className="container">
-            <div className="live-feed-wrapper">
-              <div className="live-feed-label">
-                <span className="live-indicator"></span>
-                <span>Recent Donations</span>
-              </div>
-              <div className="live-feed-track">
-                <div className="live-feed-items">
-                  {[...sampleDonors, ...sampleDonors].map((donor, index) => (
-                    <div key={index} className="feed-item">
-                      <div className="feed-avatar">{donor.initial}</div>
-                      <span className="feed-text">
-                        <strong>{donor.name}</strong> donated <strong>${donor.amount}</strong>
-                      </span>
-                      <span className="feed-time">{donor.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Fundraising Goals */}
-        <section className="fundraising-goals">
-          <div className="container">
-            <div className="goals-header">
-              <h2>Current Campaigns</h2>
-              <p>Track our progress in real-time and see the impact of every donation</p>
-            </div>
-            <div className="goals-grid">
-              <GoalCard
-                icon="🍽️"
-                title="Ramadan 2025 Campaign"
-                description="Providing food packages and hot meals to families during the blessed month of Ramadan."
-                progress={78}
-                raised={78500}
-                goal={100000}
-                donors={284}
-                avatars={['S', 'A', 'M']}
-              />
-              <GoalCard
-                icon="🆘"
-                title="Gaza Emergency Relief"
-                description="Emergency aid for displaced families including food, medical supplies, and essential shelter."
-                progress={62}
-                raised={155000}
-                goal={250000}
-                donors={512}
-                avatars={['R', 'K', 'J']}
-                featured
-                urgent
-              />
-              <GoalCard
-                icon="👧"
-                title="Children's Summer Camp"
-                description="Fun educational camp experiences for underserved children in both Toronto and Cairo communities."
-                progress={45}
-                raised={22500}
-                goal={50000}
-                donors={156}
-                avatars={['N', 'L', 'T']}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Main Donation Form */}
-        <section className="donation-form-section" id="donateForm">
-          <div className="container">
-            {/* Step Progress */}
-            <div className="form-steps">
-              {[1, 2, 3].map((step) => (
-                <div 
-                  key={step}
-                  className={`step-item ${currentStep >= step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
-                  data-step={step}
+      <Card className="border-border/50">
+        <CardContent className="p-6 space-y-6">
+          {/* Frequency Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-foreground">Giving Frequency</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {frequencies.map((f) => (
+                <Button
+                  key={f.value}
+                  variant={frequency === f.value ? "default" : "outline"}
+                  onClick={() => setFrequency(f.value)}
+                  className={`rounded-xl ${frequency === f.value ? "bg-primary text-primary-foreground" : ""}`}
                 >
-                  <span className="step-number">{step}</span>
-                  <span className="step-label">
-                    {step === 1 ? 'Choose Cause' : step === 2 ? 'Amount' : 'Payment'}
-                  </span>
-                </div>
+                  {f.value !== "one-time" && <Repeat className="w-3 h-3 mr-1" />}
+                  {f.label}
+                </Button>
               ))}
             </div>
+          </div>
 
-            <div className="donation-wrapper">
-              {/* Cause Selection */}
-              <div className="donation-causes">
-                <h2>Choose a Cause</h2>
-                <p className="causes-subtitle">Select where you&apos;d like your donation to have the most impact</p>
-                
-                <div className="causes-grid">
-                  {Object.entries(causeNames).map(([value, name]) => (
-                    <label key={value} className="cause-card">
-                      <input 
-                        type="radio" 
-                        name="cause" 
-                        value={value}
-                        checked={donationState.cause === value}
-                        onChange={() => {
-                          setDonationState(prev => ({ ...prev, cause: value }));
-                          setCurrentStep(Math.max(currentStep, 2));
-                        }}
-                      />
-                      <div className="cause-content">
-                        <span className="cause-icon">
-                          {value === 'general' ? '❤️' : 
-                           value === 'food' ? '🍲' : 
-                           value === 'gaza' ? '🆘' : 
-                           value === 'orphans' ? '👧' : 
-                           value === 'winter' ? '🧥' : '🏕️'}
-                        </span>
-                        <span className="cause-name">{name}</span>
-                        <span className="cause-description">
-                          {value === 'general' ? 'Flexible funding for urgent needs' :
-                           value === 'food' ? 'Meals & food packages for families' :
-                           value === 'gaza' ? 'Emergency aid for Gaza families' :
-                           value === 'orphans' ? 'Care & education for orphans' :
-                           value === 'winter' ? 'Warm clothing & winter kits' : 'Fun activities for children'}
-                        </span>
-                      </div>
-                      <div className="cause-check">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Donation Form */}
-              <div className="donation-form-container">
-                <form className="donation-form glass-card" onSubmit={handleSubmit}>
-                  <h2>Make Your Donation</h2>
-
-                  {/* Frequency Toggle */}
-                  <div className="form-section">
-                    <label className="form-label">Donation Type</label>
-                    <div className="frequency-toggle">
-                      {['one-time', 'weekly', 'monthly'].map((freq) => (
-                        <button
-                          key={freq}
-                          type="button"
-                          className={`frequency-btn ${donationState.frequency === freq ? 'active' : ''}`}
-                          onClick={() => setDonationState(prev => ({ ...prev, frequency: freq }))}
-                        >
-                          {freq === 'one-time' ? 'One-time' : freq.charAt(0).toUpperCase() + freq.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    {donationState.frequency !== 'one-time' && (
-                      <p className="recurring-note">
-                        <span className="recurring-icon">🔄</span>
-                        You&apos;ll be charged {donationState.frequency} until you cancel
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Amount Selection */}
-                  <div className="form-section">
-                    <label className="form-label">Select Amount</label>
-                    <div className="amount-grid">
-                      {[25, 50, 100, 250, 500, 1000].map((amount) => (
-                        <button
-                          key={amount}
-                          type="button"
-                          className={`amount-btn ${donationState.amount === amount ? 'active' : ''}`}
-                          onClick={() => {
-                            setDonationState(prev => ({ ...prev, amount }));
-                            setCurrentStep(Math.max(currentStep, 3));
-                          }}
-                        >
-                          ${amount === 1000 ? '1,000' : amount}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="custom-amount">
-                      <span className="currency-symbol">$</span>
+          {/* Amount Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-foreground">Select Amount</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {presetAmounts.map((amt) => (
+                <Button
+                  key={amt}
+                  variant={selectedAmount === amt && !customAmount ? "default" : "outline"}
+                  onClick={() => { setSelectedAmount(amt); setCustomAmount(""); }}
+                  className={`h-12 text-lg font-semibold rounded-xl ${
+                    selectedAmount === amt && !customAmount ? "bg-primary text-primary-foreground" : ""
+                  }`}
+                >
+                  ${amt}
+                </Button>
+              ))}
+            </div>
+            <div className="relative">
+              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         type="number"
-                        placeholder="Enter custom amount"
-                        min="1"
-                        step="1"
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (value > 0) {
-                            setDonationState(prev => ({ ...prev, amount: value }));
-                            setCurrentStep(Math.max(currentStep, 3));
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="amount-impact">
-                      <span className="impact-icon">✨</span>
-                      <span className="impact-text">{getImpactMessage(donationState.amount)}</span>
-                    </div>
-                  </div>
-
-                  {/* Donor Type */}
-                  <div className="form-section">
-                    <label className="form-label">Donor Information</label>
-                    <div className="donor-type-toggle">
-                      <label className="donor-type-option">
-                        <input
-                          type="radio"
-                          name="donorType"
-                          value="details"
-                          checked={donationState.donorType === 'details'}
-                          onChange={() => setDonationState(prev => ({ ...prev, donorType: 'details' }))}
-                        />
-                        <span className="donor-type-content">
-                          <span className="donor-type-icon">👤</span>
-                          <span className="donor-type-text">
-                            <strong>With Details</strong>
-                            <small>Get receipt & updates</small>
-                          </span>
-                        </span>
-                      </label>
-                      <label className="donor-type-option">
-                        <input
-                          type="radio"
-                          name="donorType"
-                          value="anonymous"
-                          checked={donationState.donorType === 'anonymous'}
-                          onChange={() => setDonationState(prev => ({ ...prev, donorType: 'anonymous' }))}
-                        />
-                        <span className="donor-type-content">
-                          <span className="donor-type-icon">🕶️</span>
-                          <span className="donor-type-text">
-                            <strong>Anonymous</strong>
-                            <small>Donate privately</small>
-                          </span>
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Donor Details */}
-                  {donationState.donorType === 'details' && (
-                    <div className="form-section donor-details">
-                      <div className="input-row">
-                        <div className="input-group">
-                          <label htmlFor="firstName">First Name</label>
-                          <input
-                            type="text"
-                            id="firstName"
-                            placeholder="John"
-                            value={donationState.donorInfo.firstName}
-                            onChange={(e) => setDonationState(prev => ({
-                              ...prev,
-                              donorInfo: { ...prev.donorInfo, firstName: e.target.value }
-                            }))}
-                          />
-                        </div>
-                        <div className="input-group">
-                          <label htmlFor="lastName">Last Name</label>
-                          <input
-                            type="text"
-                            id="lastName"
-                            placeholder="Doe"
-                            value={donationState.donorInfo.lastName}
-                            onChange={(e) => setDonationState(prev => ({
-                              ...prev,
-                              donorInfo: { ...prev.donorInfo, lastName: e.target.value }
-                            }))}
+                placeholder="Custom amount"
+                value={customAmount}
+                onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null); }}
+                className="w-full h-12 pl-12 pr-4 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                           />
                         </div>
                       </div>
-                      <div className="input-group">
-                        <label htmlFor="email">Email Address</label>
-                        <input
-                          type="email"
-                          id="email"
-                          placeholder="john@example.com"
-                          value={donationState.donorInfo.email}
-                          onChange={(e) => setDonationState(prev => ({
-                            ...prev,
-                            donorInfo: { ...prev.donorInfo, email: e.target.value }
-                          }))}
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label htmlFor="phone">Phone (Optional)</label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          placeholder="+1 (416) 555-0123"
-                          value={donationState.donorInfo.phone}
-                          onChange={(e) => setDonationState(prev => ({
-                            ...prev,
-                            donorInfo: { ...prev.donorInfo, phone: e.target.value }
-                          }))}
-                        />
-                      </div>
-                      <label className="checkbox-label">
-                        <input type="checkbox" defaultChecked />
-                        <span className="checkbox-custom"></span>
-                        <span>Keep me updated on Ramadan Giving&apos;s impact</span>
-                      </label>
-                    </div>
-                  )}
 
-                  {/* Dedication */}
-                  <div className="form-section">
-                    <label className="form-label">
-                      Dedicate This Donation <span className="optional">(Optional)</span>
-                    </label>
-                    <div className="dedication-toggle">
-                      {['none', 'honor', 'memory'].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          className={`dedication-btn ${donationState.dedication === type ? 'active' : ''}`}
-                          onClick={() => setDonationState(prev => ({ ...prev, dedication: type }))}
-                        >
-                          {type === 'none' ? 'No Dedication' : type === 'honor' ? 'In Honor' : 'In Memory'}
-                        </button>
-                      ))}
-                    </div>
-                    {donationState.dedication !== 'none' && (
-                      <div className="dedication-details">
-                        <input type="text" placeholder="Name of person being honored" />
-                        <textarea placeholder="Add a personal message (optional)" rows={2}></textarea>
-                      </div>
-                    )}
-                  </div>
+          {/* Allocation Dropdown */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-foreground">Allocate To</Label>
+            <Select value={allocation} onValueChange={setAllocation}>
+              <SelectTrigger className="h-12 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {allocations.map((a) => (
+                  <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-                  {/* Payment Methods */}
-                  <div className="form-section payment-section">
-                    <label className="form-label">Payment Method</label>
-                    <div className="payment-methods">
-                      <div className="payment-group">
-                        <span className="payment-group-label">Card Payment</span>
-                        <button
-                          type="button"
-                          className={`payment-btn card-pay ${donationState.paymentMethod === 'card' ? 'active' : ''}`}
-                          onClick={() => setDonationState(prev => ({ ...prev, paymentMethod: 'card' }))}
-                        >
-                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                            <line x1="1" y1="10" x2="23" y2="10"/>
-                          </svg>
-                          <span>Credit / Debit Card</span>
-                          <div className="card-icons">
-                            <span className="card-icon visa">VISA</span>
-                            <span className="card-icon mastercard">MC</span>
-                            <span className="card-icon amex">AMEX</span>
-                          </div>
-                        </button>
-                      </div>
-                      <div className="payment-group">
-                        <span className="payment-group-label">Bank Transfer</span>
-                        <button
-                          type="button"
-                          className={`payment-btn bank-transfer ${donationState.paymentMethod === 'bank' ? 'active' : ''}`}
-                          onClick={() => setDonationState(prev => ({ ...prev, paymentMethod: 'bank' }))}
-                        >
-                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 21h18"/>
-                            <path d="M3 10h18"/>
-                            <path d="M5 6l7-3 7 3"/>
-                            <path d="M4 10v11"/>
-                            <path d="M20 10v11"/>
-                            <path d="M8 10v11"/>
-                            <path d="M12 10v11"/>
-                            <path d="M16 10v11"/>
-                          </svg>
-                          <span>Bank Transfer / E-Transfer</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+          {/* Anonymous Toggle */}
+          <div className="flex items-center space-x-3 p-4 rounded-xl bg-secondary/50">
+            <Checkbox 
+              id="anonymous" 
+              checked={isAnonymous}
+              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+            />
+            <div className="flex-1">
+              <Label htmlFor="anonymous" className="text-foreground font-medium cursor-pointer flex items-center gap-2">
+                <EyeOff className="w-4 h-4" />
+                Make this donation anonymous
+              </Label>
+              <p className="text-xs text-muted-foreground">Your name won't appear publicly</p>
+            </div>
+          </div>
 
-                  {/* Bank Details */}
-                  {donationState.paymentMethod === 'bank' && (
-                    <div className="form-section bank-details">
-                      <div className="bank-info-card">
-                        <h4>🏦 Bank Transfer Details</h4>
-                        <div className="bank-info-grid">
-                          <div className="bank-info-item">
-                            <span className="bank-label">Bank Name</span>
-                            <span className="bank-value">TD Canada Trust</span>
-                          </div>
-                          <div className="bank-info-item">
-                            <span className="bank-label">Account Name</span>
-                            <span className="bank-value">Ramadan Giving Organization</span>
-                          </div>
-                          <div className="bank-info-item">
-                            <span className="bank-label">Transit Number</span>
-                            <span className="bank-value">12345</span>
-                          </div>
-                          <div className="bank-info-item">
-                            <span className="bank-label">Institution Number</span>
-                            <span className="bank-value">004</span>
-                          </div>
-                          <div className="bank-info-item">
-                            <span className="bank-label">Account Number</span>
-                            <span className="bank-value">1234567890</span>
-                          </div>
-                        </div>
-                        <div className="etransfer-info">
-                          <h5>📧 E-Transfer</h5>
-                          <p>Send e-transfers to: <strong>donate@ramadangiving.org</strong></p>
-                          <p className="etransfer-note">Include your email in the message for receipt</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+          {/* Donate Button */}
+          <Button
+            onClick={handleDonate}
+            disabled={!amount || isLoading}
+            className="w-full h-14 text-lg font-semibold rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground"
+          >
+            <Heart className="w-5 h-5 mr-2" />
+            {isLoading ? "Processing..." : `Donate ${amount ? `$${amount}` : ""} ${isRecurring ? frequency : ""}`}
+          </Button>
 
-                  {/* Summary */}
-                  <div className="donation-summary">
-                    <div className="summary-line">
-                      <span>Donation Amount</span>
-                      <span className="summary-amount">{formatCurrency(donationState.amount)}</span>
-                    </div>
-                    {donationState.frequency !== 'one-time' && (
-                      <div className="summary-line">
-                        <span>Frequency</span>
-                        <span className="summary-frequency">{donationState.frequency.charAt(0).toUpperCase() + donationState.frequency.slice(1)}</span>
-                      </div>
-                    )}
-                    <div className="summary-line">
-                      <span>Cause</span>
-                      <span className="summary-cause">{causeNames[donationState.cause]}</span>
-                    </div>
-                    <div className="summary-divider"></div>
-                    <div className="summary-line total">
-                      <span>Total</span>
-                      <span className="summary-total">{formatCurrency(donationState.amount)}</span>
-                    </div>
-                  </div>
-
-                  {/* Submit */}
-                  <button type="submit" className={`donate-submit-btn ${isLoading ? 'loading' : ''}`} disabled={isLoading}>
-                    <span className="btn-text">Complete Donation</span>
-                    <span className="btn-amount">{formatCurrency(donationState.amount)}</span>
-                    <svg className="btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-
-                  <div className="security-note">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    <span>Your payment is secured with 256-bit SSL encryption</span>
-                  </div>
-                </form>
+          {/* Payment Methods Info */}
+          <div className="p-4 rounded-xl bg-muted/30 space-y-3">
+            <p className="text-sm font-medium text-foreground">Accepted Payment Methods</p>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border">
+                <CreditCard className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Credit Card</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border">
+                <Wallet className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Google Pay</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border">
+                <Wallet className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Apple Pay</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border">
+                <Landmark className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">PayPal</span>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* External Fundraising */}
-        <section className="external-fundraising">
-          <div className="container">
-            <div className="external-header">
-              <h2>Other Ways to Donate</h2>
-              <p>Support us through our trusted partner platforms</p>
-            </div>
-            <div className="external-grid">
-              <a href="https://www.launchgood.com/v4/campaign/ramadan_giving_building_bridges_of_hope" target="_blank" rel="noopener noreferrer" className="external-card launchgood">
-                <div className="external-logo">
-                  <span className="external-icon">🚀</span>
-                  <span className="external-name">LaunchGood</span>
-                </div>
-                <p>Join our main campaign and see real-time updates on our progress and impact stories.</p>
-                <span className="external-cta">
-                  Donate on LaunchGood
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </span>
-              </a>
-              <Link href="#" className="external-card gofundme">
-                <div className="external-logo">
-                  <span className="external-icon">💚</span>
-                  <span className="external-name">GoFundMe</span>
-                </div>
-                <p>Emergency campaigns and special projects that need your immediate support.</p>
-                <span className="external-cta">
-                  View Campaigns
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </span>
-              </Link>
-              <Link href="#" className="external-card paypal">
-                <div className="external-logo">
-                  <span className="external-icon">💳</span>
-                  <span className="external-name">PayPal</span>
-                </div>
-                <p>Quick and secure payments via PayPal for instant processing.</p>
-                <span className="external-cta">
-                  Donate via PayPal
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </span>
-              </Link>
-            </div>
-          </div>
-        </section>
+          <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+            <Shield className="w-3 h-3" />
+            Secure payment powered by Stripe. Tax-deductible.
+          </p>
+        </CardContent>
+      </Card>
 
-        {/* Trust Section */}
-        <section className="trust-section">
-          <div className="container">
-            <div className="trust-grid">
-              <div className="trust-item">
-                <span className="trust-icon">🔒</span>
-                <h4>Secure Donations</h4>
-                <p>256-bit SSL encryption protects all your transactions and personal data.</p>
-              </div>
-              <div className="trust-item">
-                <span className="trust-icon">📋</span>
-                <h4>Tax Receipts</h4>
-                <p>Receive official tax receipts for all eligible donations via email.</p>
-              </div>
-              <div className="trust-item">
-                <span className="trust-icon">💯</span>
-                <h4>100% Transparent</h4>
-                <p>Track exactly how your donation makes an impact in our communities.</p>
-              </div>
-              <div className="trust-item">
-                <span className="trust-icon">🤝</span>
-                <h4>Community Driven</h4>
-                <p>All volunteer-run, 100% of donations go directly to programs.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </>
-  );
-}
-
-// Goal Card Component
-interface GoalCardProps {
-  icon: string;
-  title: string;
-  description: string;
-  progress: number;
-  raised: number;
-  goal: number;
-  donors: number;
-  avatars: string[];
-  featured?: boolean;
-  urgent?: boolean;
-}
-
-function GoalCard({ icon, title, description, progress, raised, goal, donors, avatars, featured, urgent }: GoalCardProps) {
-  return (
-    <div className={`goal-card ${featured ? 'featured' : ''}`}>
-      {urgent && <div className="goal-badge">Urgent</div>}
-      <div className="goal-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p className="goal-description">{description}</p>
-      <div className="goal-progress-container">
-        <div className="goal-progress-bar">
-          <div 
-            className={`goal-progress-fill ${urgent ? 'urgent' : ''}`} 
-            data-progress={progress} 
-            style={{ width: '0%' }}
-          ></div>
+      {/* E-Transfer Info */}
+      <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-accent/5">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Banknote className="w-5 h-5 text-primary" />
+            <span className="font-medium text-foreground">Donate via E-Transfer</span>
         </div>
-        <div className="goal-stats">
-          <span className="goal-raised" data-raised={raised}>${raised.toLocaleString()}</span>
-          <span className="goal-target">of ${goal.toLocaleString()} goal</span>
+          <p className="text-sm text-muted-foreground">
+            You can also donate directly via Interac e-Transfer:
+          </p>
+          <div className="p-3 rounded-lg bg-background border border-border">
+            <p className="text-sm font-medium text-foreground">donate@ramadangiving.ca</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Please include your email in the message for a tax receipt.
+            </p>
         </div>
+        </CardContent>
+      </Card>
+
+      {/* Trust Info */}
+      <Card className="border-border/50 border-2 border-gold/30">
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-gold" />
+            <span className="font-medium text-foreground text-sm">How Funds Are Used</span>
       </div>
-      <div className="goal-donors">
-        <div className="donor-avatars">
-          {avatars.map((avatar, i) => (
-            <span key={i} className="donor-avatar">{avatar}</span>
-          ))}
-          <span className="donor-avatar">+{donors - avatars.length}</span>
+          <p className="text-xs text-muted-foreground">
+            100% of Zakat goes directly to eligible recipients. General donations: 90%+ to programs, minimal overhead for essential operations.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* In-Kind Donations */}
+      <Card className="border-border/50">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Gift className="w-5 h-5 text-primary" />
+            <span className="font-medium text-foreground">In-Kind Donations</span>
         </div>
-        <span className="donor-count">{donors} donors</span>
-      </div>
+          <p className="text-sm text-muted-foreground">
+            We also accept material goods: non-perishable food, warm clothing, school supplies, and hygiene items.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Contact us at <span className="text-gold font-medium">donations@ramadangiving.org</span> to arrange drop-off or pickup.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Guest Modal */}
+      <GuestDonationModal
+        open={showGuestModal}
+        onOpenChange={setShowGuestModal}
+        onContinueAsGuest={proceedToCheckout}
+      />
     </div>
   );
 }
-
