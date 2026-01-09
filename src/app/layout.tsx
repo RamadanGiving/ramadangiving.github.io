@@ -1,25 +1,16 @@
 import type { Metadata, Viewport } from 'next';
-import { DM_Sans, Cormorant_Garamond } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import ParticlesBackground from '@/components/ParticlesBackground';
-import SkipLink from '@/components/SkipLink';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { AuthProvider } from '@/hooks/useAuth';
+import { Layout } from '@/components/layout/Layout';
+import { Providers } from '@/components/Providers';
 import Script from 'next/script';
 
 // Optimize font loading with display swap
-const dmSans = DM_Sans({ 
+const inter = Inter({ 
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'], // Remove 300 if not used
-  variable: '--font-dm-sans',
-  display: 'swap',
-  preload: true,
-});
-
-const cormorant = Cormorant_Garamond({ 
-  subsets: ['latin'],
-  weight: ['400', '600', '700'], // Remove 500 if not used
-  variable: '--font-cormorant',
+  variable: '--font-sans',
   display: 'swap',
   preload: true,
 });
@@ -91,6 +82,16 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://ramadangiving.github.io',
   },
+  icons: {
+    icon: [
+      { url: '/assets/images/logo.jpg', sizes: 'any' },
+      { url: '/assets/images/logo.jpg', type: 'image/jpeg' },
+    ],
+    apple: [
+      { url: '/assets/images/logo.jpg', sizes: '180x180', type: 'image/jpeg' },
+    ],
+    shortcut: '/assets/images/logo.jpg',
+  },
 };
 
 // JSON-LD structured data for better SEO
@@ -119,8 +120,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
+        {/* Favicon */}
+        <link rel="icon" href="/assets/images/logo.jpg" type="image/jpeg" sizes="any" />
+        <link rel="shortcut icon" href="/assets/images/logo.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/assets/images/logo.jpg" sizes="180x180" />
+        
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://cdn.amcharts.com" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -133,14 +139,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>
-        <SkipLink />
-        <ParticlesBackground />
-        <Navbar />
-        <main id="main-content">
-          {children}
-        </main>
-        <Footer />
+      <body suppressHydrationWarning>
+        <Providers>
+          <ThemeProvider>
+            <AuthProvider>
+              <Layout>
+                {children}
+              </Layout>
+            </AuthProvider>
+          </ThemeProvider>
+        </Providers>
         
         {/* Load amCharts lazily - only needed for the map section */}
         <Script 
