@@ -36,6 +36,7 @@ interface DonationRequest {
     message?: string;
   };
   isAnonymous?: boolean; // Legacy support
+  mode?: "redirect" | "embedded"; // New: embedded mode for Stripe Elements
 }
 
 serve(async (req) => {
@@ -110,6 +111,7 @@ serve(async (req) => {
       campaignTitle,
       dedication,
       isAnonymous, // Legacy support
+      mode = "redirect", // Default to redirect for backward compatibility
     } = body;
 
     // Determine actual donor type
@@ -307,39 +309,65 @@ serve(async (req) => {
       }
     } else {
       // Create one-time payment
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId || undefined,
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: currency.toLowerCase(),
-              product_data: {
-                name: `Donation - ${campaignTitle || "General Fund"}`,
-                description: dedication?.message || undefined,
-              },
-              unit_amount: Math.round(amount * 100), // Convert to cents
-            },
-            quantity: 1,
+      if (mode === "embedded") {
+        // Embedded mode: Create PaymentIntent for Stripe Elements
+        const paymentIntentData = await stripe.paymentIntents.create({
+          amount: Math.round(amount * 100), // Convert to cents
+          currency: currency.toLowerCase(),
+          customer: customerId || undefined,
+          receipt_email: user?.email || guestInfo?.email || undefined,
+          metadata: {
+            donor_type: effectiveDonorType,
+            user_id: user?.id || "",
+            campaign_id: campaignId || "",
+            campaign_title: campaignTitle || "",
+            claim_token: claimToken || "",
+            guest_name: guestInfo?.name || "",
+            guest_email: guestInfo?.email || "",
+            dedication: JSON.stringify(dedication || {}),
           },
-        ],
-        mode: "payment",
-        success_url: `${appUrl}/donation-success?session_id={CHECKOUT_SESSION_ID}&amount=${amount}&claim_token=${claimToken || ""}`,
-        cancel_url: `${appUrl}/donate?canceled=true`,
-        metadata: {
-          donor_type: effectiveDonorType,
-          user_id: user?.id || "",
-          campaign_id: campaignId || "",
-          campaign_title: campaignTitle || "",
-          claim_token: claimToken || "",
-          guest_name: guestInfo?.name || "",
-          guest_email: guestInfo?.email || "",
-          dedication: JSON.stringify(dedication || {}),
-        },
-        allow_promotion_codes: true,
-      });
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
 
-      paymentIntent = session;
+        paymentIntent = paymentIntentData;
+      } else {
+        // Redirect mode: Create Checkout Session
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId || undefined,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: currency.toLowerCase(),
+                product_data: {
+                  name: `Donation - ${campaignTitle || "General Fund"}`,
+                  description: dedication?.message || undefined,
+                },
+                unit_amount: Math.round(amount * 100), // Convert to cents
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          success_url: `${appUrl}/donation-success?session_id={CHECKOUT_SESSION_ID}&amount=${amount}&claim_token=${claimToken || ""}`,
+          cancel_url: `${appUrl}/donate?canceled=true`,
+          metadata: {
+            donor_type: effectiveDonorType,
+            user_id: user?.id || "",
+            campaign_id: campaignId || "",
+            campaign_title: campaignTitle || "",
+            claim_token: claimToken || "",
+            guest_name: guestInfo?.name || "",
+            guest_email: guestInfo?.email || "",
+            dedication: JSON.stringify(dedication || {}),
+          },
+          allow_promotion_codes: true,
+        });
+
+        paymentIntent = session;
+      }
     }
 
     // Create donation record in database (pending status)
@@ -402,10 +430,18 @@ serve(async (req) => {
       }
     }
 
+    // Build response based on mode
+    const isEmbeddedPayment = "client_secret" in paymentIntent;
+
     return new Response(
       JSON.stringify({
+        // For redirect mode (Checkout Session)
         url: "url" in paymentIntent ? paymentIntent.url : null,
-        session_id: "id" in paymentIntent ? paymentIntent.id : null,
+        session_id: !isEmbeddedPayment && "id" in paymentIntent ? paymentIntent.id : null,
+        // For embedded mode (PaymentIntent)
+        client_secret: isEmbeddedPayment ? paymentIntent.client_secret : null,
+        payment_intent_id: isEmbeddedPayment ? paymentIntent.id : null,
+        // Common fields
         donation_id: donation?.id || null,
         claim_token: claimToken,
       }),

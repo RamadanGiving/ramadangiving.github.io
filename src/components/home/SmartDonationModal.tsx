@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, CreditCard, Loader2, Heart, Package, Sparkles, ChevronRight, ArrowLeft, Landmark, Wallet } from "lucide-react";
+import { Check, CreditCard, Loader2, Heart, Package, Sparkles, ChevronRight, ArrowLeft, Landmark, Wallet, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { GuestDonationModal } from "@/components/GuestDonationModal";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { StripeProvider } from "@/components/payments/StripeProvider";
+import { EmbeddedCheckoutForm } from "@/components/payments/EmbeddedCheckoutForm";
 
 interface SmartDonationModalProps {
   open: boolean;
@@ -64,6 +66,10 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
   const [isLoading, setIsLoading] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
 
+  // Embedded payment state
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
   const amount = customAmount ? Number(customAmount) : selectedAmount;
 
   // Reset when modal closes
@@ -74,6 +80,8 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
       setCustomAmount("");
       setSelectedCause("");
       setIsAnonymous(false);
+      setClientSecret(null);
+      setPaymentSuccess(false);
     }
   }, [open]);
 
@@ -145,12 +153,6 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
 
     setIsLoading(true);
     try {
-      if (!supabase) {
-        throw new Error("Supabase client not initialized");
-      }
-
-
-
       const session = await supabase.auth.getSession();
       const authToken = session.data.session?.access_token;
 
@@ -168,6 +170,7 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
           userId: user?.id,
           campaignId: selectedCause || "general",
           campaignTitle: getCauseName(),
+          mode: "embedded", // Use embedded payment mode
         },
         headers: authToken ? {
           Authorization: `Bearer ${authToken}`,
@@ -178,10 +181,15 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
         throw new Error(error.message || "Failed to initiate payment");
       }
 
-      if (data?.url) {
-        window.open(data.url, "_blank");
+      if (data?.client_secret) {
+        // Embedded mode: show payment form in modal
+        setClientSecret(data.client_secret);
+        setStep(3);
+      } else if (data?.url) {
+        // Fallback to redirect mode
+        window.location.href = data.url;
       } else {
-        throw new Error("No payment URL received");
+        throw new Error("No payment information received");
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
@@ -193,6 +201,16 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setPaymentSuccess(true);
+    setStep(4); // Success step
+  };
+
+  const handlePaymentCancel = () => {
+    setClientSecret(null);
+    setStep(2); // Go back to confirmation
   };
 
   const handleClose = () => {
@@ -210,19 +228,23 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-primary-hover p-6 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-white">
-                {step === 1 ? "Choose Your Impact" : "Confirm Your Gift"}
-              </DialogTitle>
-              <p className="text-white/80 mt-1">
-                {step === 1
-                  ? "See exactly how your donation helps our community"
-                  : "Review your donation details"}
-              </p>
-            </DialogHeader>
-          </div>
+          {/* Header - hide on success step */}
+          {step !== 4 && (
+            <div className="bg-gradient-to-r from-primary to-primary-hover p-6 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-white">
+                  {step === 1 ? "Choose Your Impact" : step === 2 ? "Confirm Your Gift" : "Complete Payment"}
+                </DialogTitle>
+                <p className="text-white/80 mt-1">
+                  {step === 1
+                    ? "See exactly how your donation helps our community"
+                    : step === 2
+                      ? "Review your donation details"
+                      : "Enter your payment details securely"}
+                </p>
+              </DialogHeader>
+            </div>
+          )}
 
           <div className="p-6">
             {step === 1 && (
@@ -398,7 +420,7 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5 mr-2" />
-                      Complete Donation
+                      Continue to Payment
                     </>
                   )}
                 </Button>
@@ -415,6 +437,53 @@ export function SmartDonationModal({ open, onOpenChange }: SmartDonationModalPro
                 <p className="text-xs text-center text-muted-foreground">
                   Secure payment powered by Stripe • Tax-deductible receipt provided
                 </p>
+              </div>
+            )}
+
+            {/* Step 3: Embedded Payment Form */}
+            {step === 3 && clientSecret && amount && (
+              <StripeProvider clientSecret={clientSecret}>
+                <EmbeddedCheckoutForm
+                  amount={amount}
+                  onSuccess={handlePaymentSuccess}
+                  onCancel={handlePaymentCancel}
+                />
+              </StripeProvider>
+            )}
+
+            {/* Step 4: Success */}
+            {step === 4 && (
+              <div className="text-center py-8 space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center animate-in zoom-in duration-300">
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-foreground">
+                    Thank You! 💚
+                  </h3>
+                  <p className="text-lg text-primary font-semibold">
+                    Your ${amount} donation is complete
+                  </p>
+                  <p className="text-muted-foreground">
+                    Your generosity will make a real difference in someone's life.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    A confirmation email has been sent to your inbox.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Tax receipt will be sent within 24 hours.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleClose}
+                  className="w-full h-12 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground"
+                >
+                  Done
+                </Button>
               </div>
             )}
           </div>
