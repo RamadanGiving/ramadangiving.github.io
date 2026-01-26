@@ -10,7 +10,7 @@ location: "Waterloo, ON"
 featured: true
 ---
 
-WATERLOO, ON — On the coldest day of the year, as Ontario experienced record-breaking low temperatures, Ramadan Giving brought together more than 60 volunteers to prepare, pack, and distribute 180 hot meals and 250 winter kits to support unhoused community members across Waterloo and Kitchener. Volunteers and supporters raised over $2,500 to provide these crucial items to those who need them in the area.
+On the coldest day of the year, as Ontario experienced record-breaking low temperatures, Ramadan Giving brought together more than 60 volunteers to prepare, pack, and distribute 180 hot meals and 250 winter kits to support unhoused community members across Waterloo and Kitchener. Volunteers and supporters raised over $2,500 to provide these crucial items to those who need them in the area.
 
 Hosted at the Chandler Mowat Community Centre, the initiative marked Ramadan Giving's first winter outreach event in Waterloo. The event was made possible through collaboration with Rommana Café, Muslim Social Services Waterloo, and Wijhah Initiative, who supported logistics, additional volunteers, promotion, and donations. Working together, the organizations ensured essential resources reached individuals during a period of extreme cold, highlighting the impact of coordinated, on-the-ground volunteer efforts in responding to the needs of the unhoused during severe weather.
 
