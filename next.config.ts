@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
 
-const isProduction = process.env.NODE_ENV === 'production';
-const repositoryName = process.env.NEXT_PUBLIC_REPO_NAME || 'ramadangiving.github.io';
-
 const nextConfig: NextConfig = {
   output: 'export',
 
@@ -17,9 +14,9 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 
-  // Base path for GitHub Pages
-  basePath: isProduction ? `/${repositoryName}` : '',
-  assetPrefix: isProduction ? `/${repositoryName}` : '',
+  // No basePath needed for custom domain (ramadangiving.ca)
+  // basePath is only needed for project pages (username.github.io/repo-name)
+  // Since this is a user/organization site with custom domain, basePath should be empty
 
   // Turbopack configuration (Next.js 16+)
   turbopack: {},
