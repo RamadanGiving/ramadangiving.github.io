@@ -1,4 +1,4 @@
-# Ramadan Giving - Next.js Website
+# Ramadan Giving - Next.JS Website
 
 A modern, performant website for Ramadan Giving organization built with Next.js 15, TypeScript, and static export for GitHub Pages deployment.
 
