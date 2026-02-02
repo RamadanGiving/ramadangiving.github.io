@@ -9,8 +9,23 @@ import { Badge } from "@/components/ui/badge";
 import { HeroSection } from "@/components/home/HeroSection";
 import { BentoGrid } from "@/components/home/BentoGrid";
 import { ImpactTimeline } from "@/components/home/ImpactTimeline";
+import { CurrentEvents, type CurrentEvent } from "@/components/home/CurrentEvents";
 import { CommunityCarousel } from "@/components/home/CommunityCarousel";
 import { SmartDonationModal } from "@/components/home/SmartDonationModal";
+
+const currentEvents: CurrentEvent[] = [
+  {
+    id: "gala-iftar-2026",
+    title: "Ramadan Giving Fundraising Iftaar",
+    label: "Gala",
+    summary:
+      "Join us for a night of giving back. Come together for renowned speakers, nasheed artists, delicious food, and community—all for a great cause. Early bird tickets $60 (until Feb 15), regular $70; 100% of ticket revenue funds our initiatives for underserved populations.",
+    url: "https://www.eventbrite.com/e/ramadan-giving-fundraising-iftaar-tickets-1981393487258?aff=oddtdtcreator",
+    ctaLabel: "Get tickets on Eventbrite",
+    date: "Sunday, March 8, 2026 · 4pm–9pm",
+    location: "Verdi Convention Centre, Mississauga, ON",
+  },
+];
 
 const testimonials = [
   { quote: "Ramadan Giving helped our family during the most difficult time. Their support was a blessing.", author: "Sarah M.", location: "Toronto, CA" },
@@ -36,6 +51,9 @@ export default function Home() {
           <BentoGrid />
         </div>
       </section>
+
+      {/* Current events */}
+      <CurrentEvents events={currentEvents} sectionSubtitle="Join us at upcoming events" />
 
       {/* Timeline - Beige bg */}
       <section className="py-10 bg-background px-4">
