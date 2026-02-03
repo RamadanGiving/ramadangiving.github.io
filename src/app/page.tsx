@@ -19,7 +19,7 @@ const currentEvents: CurrentEvent[] = [
     title: "Ramadan Giving Fundraising Iftaar",
     label: "Gala",
     summary:
-      "Join us for a night of giving back. Come together for renowned speakers, nasheed artists, delicious food, and community—all for a great cause. Early bird tickets $60 (until Feb 15), regular $70; 100% of ticket revenue funds our initiatives for underserved populations.",
+      "Join us for a night of giving back. Come together for speakers, nasheed artists, delicious food, and community—all for a great cause. Early bird tickets $60 (until Feb 15), regular $70; 100% of ticket revenue funds our initiatives for underserved populations.",
     url: "https://www.eventbrite.com/e/ramadan-giving-fundraising-iftaar-tickets-1981393487258?aff=oddtdtcreator",
     ctaLabel: "Get tickets on Eventbrite",
     date: "Sunday, March 8, 2026 · 4pm–9pm",
