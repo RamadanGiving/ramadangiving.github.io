@@ -135,59 +135,6 @@ export default function Programs() {
         </div>
       </section>
 
-      {/* Our Programs */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <Heart className="w-5 h-5 text-primary" />
-          Our Programs
-        </h2>
-        <div className="space-y-4">
-          {programs.map((program) => (
-            <Card key={program.title} className={`border-border/50 bg-gradient-to-r ${program.color}`}>
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{program.emoji}</span>
-                  <h3 className="font-bold text-foreground text-lg">{program.title}</h3>
-                </div>
-                <div className="grid md:grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <p className="font-semibold text-foreground mb-1">Who We Serve</p>
-                    <p className="text-muted-foreground">{program.who}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground mb-1">What We Do</p>
-                    <p className="text-muted-foreground">{program.what}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground mb-1">Impact</p>
-                    <p className="text-gold font-medium">{program.impact}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    size="sm"
-                    className="rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs h-8"
-                    onClick={() => router.push("/donate")}
-                  >
-                    <Heart className="w-3 h-3 mr-1" />
-                    Donate
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs h-8"
-                    onClick={() => router.push("/get-involved")}
-                  >
-                    <Users className="w-3 h-3 mr-1" />
-                    Volunteer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
       {/* Active Campaigns */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -268,6 +215,59 @@ export default function Programs() {
             </CardContent>
           </Card>
         )}
+      </section>
+
+      {/* Our Programs */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <Heart className="w-5 h-5 text-primary" />
+          Our Programs
+        </h2>
+        <div className="space-y-4">
+          {programs.map((program) => (
+            <Card key={program.title} className={`border-border/50 bg-gradient-to-r ${program.color}`}>
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{program.emoji}</span>
+                  <h3 className="font-bold text-foreground text-lg">{program.title}</h3>
+                </div>
+                <div className="grid md:grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">Who We Serve</p>
+                    <p className="text-muted-foreground">{program.who}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">What We Do</p>
+                    <p className="text-muted-foreground">{program.what}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">Impact</p>
+                    <p className="text-gold font-medium">{program.impact}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs h-8"
+                    onClick={() => router.push("/donate")}
+                  >
+                    <Heart className="w-3 h-3 mr-1" />
+                    Donate
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl text-xs h-8"
+                    onClick={() => router.push("/get-involved")}
+                  >
+                    <Users className="w-3 h-3 mr-1" />
+                    Volunteer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       {/* Annual Impact Reports */}
