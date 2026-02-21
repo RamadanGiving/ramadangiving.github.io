@@ -587,7 +587,7 @@ export function UnifiedDonationForm({
 
             {/* Continue Button */}
             <Button
-                onClick={isModal ? handleNext : initiatePayment}
+                onClick={handleNext}
                 disabled={!amount || amount < 1 || isLoading}
                 className="w-full h-14 text-lg font-semibold rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground"
             >
@@ -596,15 +596,10 @@ export function UnifiedDonationForm({
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Processing...
                     </>
-                ) : isModal ? (
+                ) : (
                     <>
                         Next
                         <ChevronRight className="w-5 h-5 ml-2" />
-                    </>
-                ) : (
-                    <>
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        Donate ${amount || 0}
                     </>
                 )}
             </Button>
